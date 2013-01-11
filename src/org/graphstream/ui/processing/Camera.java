@@ -11,7 +11,7 @@ public class Camera {
 	public Camera(ProcessingEngine processing) {
 		this.data = processing.getDataSet();
 		this.processing = processing;
-		this.padding = new float[] { 5, 5, 5, 5 };
+		this.padding = new float[] { 50, 50, 50, 50 };
 	}
 
 	public float xToScreenX(float x) {

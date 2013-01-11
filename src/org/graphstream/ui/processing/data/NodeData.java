@@ -9,19 +9,24 @@ public class NodeData extends ElementData {
 	public float y;
 	public float z;
 	
-	Shape shape;
+	public Shape shape;
 	
-	public int stroke;
-	public int strokeRGB;
-	public float strokeA;
+	public int fillRGB;
+	public float fillA;
 	
-	public double width;
-	public double height;
+	public float width;
+	public float height;
 	
 	String label;
 	
 	public NodeData(String nodeId) {
 		super(nodeId);
+		
+		fillA = 40;
+		fillRGB = 0xFF111111;
+		width = 10;
+		height = 10;
+		shape = Shape.CIRCLE;
 	}
 	
 	@Override

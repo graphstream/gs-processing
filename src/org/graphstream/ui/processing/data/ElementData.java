@@ -7,16 +7,19 @@ public class ElementData {
 	}
 	
 	public final String id;
-	
-	public int rgb;
-	public float a;
+
+	public int stroke;
+	public int strokeRGB;
+	public float strokeA;
 	
 	Visibility visibility;
 
 	public ElementData(String id) {
 		this.id = id;
-		rgb = 0xFF222222;
-		a = 255;
+		
+		stroke = 1;
+		strokeRGB = 0xFF333333;
+		strokeA = 255;
 		visibility = Visibility.VISIBLE;
 	}
 	

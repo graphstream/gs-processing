@@ -43,6 +43,8 @@ public class ProcessingViewer {
 
 		if (pipe != null)
 			engine.addProxyPipeToPump(pipe);
+		
+		engine.init();
 	}
 
 	public Frame getFrame() {
@@ -50,7 +52,6 @@ public class ProcessingViewer {
 			frame = new Frame();
 			frame.setLayout(new BorderLayout());
 			frame.add(BorderLayout.CENTER, engine);
-			engine.init();
 			frame.pack();
 		}
 
@@ -66,7 +67,7 @@ public class ProcessingViewer {
 
 		viewer.getFrame();
 
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 1000; i++) {
 			gen.nextEvents();
 			Thread.sleep(50);
 		}

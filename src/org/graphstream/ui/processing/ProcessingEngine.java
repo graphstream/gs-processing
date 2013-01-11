@@ -15,6 +15,8 @@ import processing.core.PApplet;
 public class ProcessingEngine extends PApplet implements Observer {
 	private static final long serialVersionUID = 5361578111229195307L;
 
+	public static final float DEFAULT_FRAME_RATE = 40;
+	
 	final DataSet data;
 	final Camera camera;
 	Layout layout;
@@ -43,7 +45,10 @@ public class ProcessingEngine extends PApplet implements Observer {
 
 	@Override
 	public void setup() {
-		size(500, 500);
+		size(1000, 1000);
+		hint(ENABLE_OPTIMIZED_STROKE);
+		smooth(8);
+		frameRate(DEFAULT_FRAME_RATE);
 	}
 
 	@Override
@@ -51,7 +56,8 @@ public class ProcessingEngine extends PApplet implements Observer {
 		for (int i = 0; i < pumpBeforeDraw.size(); i++)
 			pumpBeforeDraw.get(i).pump();
 
-		layout.compute();
+		if (layout.getStabilization() < layout.getStabilizationLimit())
+			layout.compute();
 		background(222, 222, 222);
 
 		for (int i = 0; i < data.getEdgeDataCount(); i++)
@@ -65,28 +71,94 @@ public class ProcessingEngine extends PApplet implements Observer {
 		if (!data.isVisible())
 			return;
 
-		fill(data.rgb, data.a);
+		pushStyle();
+
+		fill(data.fillRGB, data.fillA);
 
 		if (data.stroke == 0)
 			noStroke();
-		else
+		else {
 			stroke(data.strokeRGB, data.strokeA);
+			strokeWeight(data.stroke);
+		}
 
-		ellipse(camera.xToScreenX(data.x), camera.yToScreenY(data.y), 15, 15);
+		switch (data.shape) {
+		case CIRCLE:
+			ellipse(camera.xToScreenX(data.x), camera.yToScreenY(data.y),
+					data.width, data.height);
+			break;
+		case SQUARE:
+			rect(camera.xToScreenX(data.x) - data.width / 2.0f,
+					camera.yToScreenY(data.y) - data.height / 2.0f, data.width,
+					data.height);
+			break;
+		}
+
+		popStyle();
 	}
 
 	protected void draw(EdgeData data) {
 		if (!data.isVisible())
 			return;
 
-		float x1, y1, x2, y2;
-		x1 = camera.xToScreenX(data.src.x);
-		x2 = camera.xToScreenX(data.trg.x);
-		y1 = camera.yToScreenY(data.src.y);
-		y2 = camera.yToScreenY(data.trg.y);
+		float[] points = { 0, 0, 0, 0 };
+		computeConnector(data.src, data.trg, points);
+
+		pushStyle();
+
+		stroke(data.strokeRGB, data.strokeA);
+		strokeWeight(data.stroke);
+
+		line(points[0], points[1], points[2], points[3]);
+		popStyle();
+	}
+
+	protected void computeConnector(NodeData from, NodeData to, float[] xy) {
+		switch (from.shape) {
+		case CIRCLE:
+			computeConnectorCircle(from, to, xy);
+			break;
+		case SQUARE:
+			computeConnectorSquare(from, to, xy);
+			break;
+		}
+	}
+
+	protected void computeConnectorCircle(NodeData from, NodeData to, float[] points) {
+		float px1 = camera.xToScreenX(from.x);
+		float py1 = camera.yToScreenY(from.y);
+		float px2 = camera.xToScreenX(to.x);
+		float py2 = camera.yToScreenY(to.y);
+
+		points[0] = px1;
+		points[1] = py1;
+		points[2] = px2;
+		points[3] = py2;
+
+		float d = (float) Math.sqrt((px2 - px1) * (px2 - px1) + (py2 - py1)
+				* (py2 - py1));
+
+		float w = from.width / 2.0f + from.stroke / 2.0f;
+
+		if (from.width != from.height) {
+
+		}
+
+		points[0] += (px2 - px1) * w / d;
+		points[1] += (py2 - py1) * w / d;
 		
-		stroke(data.rgb, data.a);
-		line(x1, y1, x2, y2);
+		w = to.width / 2.0f + to.stroke / 2.0f;
+
+		if (to.width != to.height) {
+
+		}
+
+		points[2] += (px1 - px2) * w / d;
+		points[3] += (py1 - py2) * w / d;
+	}
+
+	protected void computeConnectorSquare(NodeData from, NodeData to, float[] xy) {
+
 	}
 
 	@Override
