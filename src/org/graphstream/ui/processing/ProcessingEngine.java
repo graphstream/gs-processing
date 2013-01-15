@@ -11,23 +11,32 @@ import org.graphstream.ui.processing.data.EdgeData;
 import org.graphstream.ui.processing.data.NodeData;
 
 import processing.core.PApplet;
+import processing.core.PImage;
 
 public class ProcessingEngine extends PApplet implements Observer {
 	private static final long serialVersionUID = 5361578111229195307L;
 
 	public static final float DEFAULT_FRAME_RATE = 40;
-	
+
 	final DataSet data;
 	final Camera camera;
 	Layout layout;
 	LinkedList<ProxyPipe> pumpBeforeDraw;
 
+	int backgroundRGB;
+	PImage backgroundImage;
+
+	final float[] drawnEdgePoints = { 0, 0, 0, 0 };
+
 	public ProcessingEngine(DataSet data) {
 		this.data = data;
-		this.layout = null;
-		this.camera = new Camera(this);
 
+		layout = null;
+		camera = new Camera(this);
 		pumpBeforeDraw = new LinkedList<ProxyPipe>();
+		backgroundImage = null;
+		backgroundRGB = 0xFFEDEDED;
+
 		data.addObserver(this);
 	}
 
@@ -43,9 +52,18 @@ public class ProcessingEngine extends PApplet implements Observer {
 		this.layout = layout;
 	}
 
+	public void setBackgroundImage(String path) {
+		backgroundImage = loadImage(path);
+	}
+
+	public void setBackgroundColor(int argb) {
+		backgroundRGB = argb;
+		backgroundImage = null;
+	}
+
 	@Override
 	public void setup() {
-		size(1000, 1000);
+		size(600, 600);
 		hint(ENABLE_OPTIMIZED_STROKE);
 		smooth(8);
 		frameRate(DEFAULT_FRAME_RATE);
@@ -58,7 +76,11 @@ public class ProcessingEngine extends PApplet implements Observer {
 
 		if (layout.getStabilization() < layout.getStabilizationLimit())
 			layout.compute();
-		background(222, 222, 222);
+
+		if (backgroundImage != null)
+			background(backgroundImage);
+		else
+			background(backgroundRGB);
 
 		for (int i = 0; i < data.getEdgeDataCount(); i++)
 			draw(data.getEdgeData(i));
@@ -73,12 +95,12 @@ public class ProcessingEngine extends PApplet implements Observer {
 
 		pushStyle();
 
-		fill(data.fillRGB, data.fillA);
+		fill(data.fillARGB);
 
 		if (data.stroke == 0)
 			noStroke();
 		else {
-			stroke(data.strokeRGB, data.strokeA);
+			stroke(data.strokeARGB);
 			strokeWeight(data.stroke);
 		}
 
@@ -101,15 +123,15 @@ public class ProcessingEngine extends PApplet implements Observer {
 		if (!data.isVisible())
 			return;
 
-		float[] points = { 0, 0, 0, 0 };
-		computeConnector(data.src, data.trg, points);
+		computeConnector(data.src, data.trg, drawnEdgePoints);
 
 		pushStyle();
 
-		stroke(data.strokeRGB, data.strokeA);
+		stroke(data.strokeARGB);
 		strokeWeight(data.stroke);
 
-		line(points[0], points[1], points[2], points[3]);
+		line(drawnEdgePoints[0], drawnEdgePoints[1], drawnEdgePoints[2],
+				drawnEdgePoints[3]);
 		popStyle();
 	}
 
@@ -124,7 +146,8 @@ public class ProcessingEngine extends PApplet implements Observer {
 		}
 	}
 
-	protected void computeConnectorCircle(NodeData from, NodeData to, float[] points) {
+	protected void computeConnectorCircle(NodeData from, NodeData to,
+			float[] points) {
 		float px1 = camera.xToScreenX(from.x);
 		float py1 = camera.yToScreenY(from.y);
 		float px2 = camera.xToScreenX(to.x);
@@ -135,26 +158,19 @@ public class ProcessingEngine extends PApplet implements Observer {
 		points[2] = px2;
 		points[3] = py2;
 
-		float d = (float) Math.sqrt((px2 - px1) * (px2 - px1) + (py2 - py1)
-				* (py2 - py1));
-
 		float w = from.width / 2.0f + from.stroke / 2.0f;
+		float h = from.height / 2.0f + from.stroke / 2.0f;
+		float delta = (float) Math.atan2(py1 - py2, px1 - px2);
 
-		if (from.width != from.height) {
+		points[0] -= w * Math.cos(delta);
+		points[1] -= h * Math.sin(delta);
 
-		}
-
-		points[0] += (px2 - px1) * w / d;
-		points[1] += (py2 - py1) * w / d;
-		
 		w = to.width / 2.0f + to.stroke / 2.0f;
+		h = from.height / 2.0f + from.stroke / 2.0f;
+		delta = (float) Math.atan2(py2 - py1, px2 - px1);
 
-		if (to.width != to.height) {
-
-		}
-
-		points[2] += (px1 - px2) * w / d;
-		points[3] += (py1 - py2) * w / d;
+		points[2] -= w * Math.cos(delta);
+		points[3] -= h * Math.sin(delta);
 	}
 
 	protected void computeConnectorSquare(NodeData from, NodeData to, float[] xy) {

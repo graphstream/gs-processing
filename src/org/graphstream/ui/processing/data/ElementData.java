@@ -1,29 +1,35 @@
 package org.graphstream.ui.processing.data;
 
+import org.graphstream.ui.graphicGraph.stylesheet.StyleConstants.VisibilityMode;
+
 public class ElementData {
-	
-	public static enum Visibility {
-		VISIBLE, HIDDEN
-	}
 	
 	public final String id;
 
 	public int stroke;
-	public int strokeRGB;
-	public float strokeA;
+	public int strokeARGB;
 	
-	Visibility visibility;
+	VisibilityMode visibility;
+	
+	public String uiClass;
 
 	public ElementData(String id) {
 		this.id = id;
 		
 		stroke = 1;
-		strokeRGB = 0xFF333333;
-		strokeA = 255;
-		visibility = Visibility.VISIBLE;
+		strokeARGB = 0xFF333333;
+		visibility = VisibilityMode.NORMAL;
 	}
 	
 	public boolean isVisible() {
-		return visibility != Visibility.HIDDEN;
+		return visibility != VisibilityMode.HIDDEN;
+	}
+	
+	public void hide() {
+		visibility = VisibilityMode.HIDDEN;
+	}
+	
+	public void show() {
+		visibility = VisibilityMode.NORMAL;
 	}
 }

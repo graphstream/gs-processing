@@ -7,6 +7,7 @@ import java.util.Observable;
 import org.graphstream.stream.AttributeSink;
 import org.graphstream.stream.ElementSink;
 import org.graphstream.stream.Source;
+import org.graphstream.ui.processing.style.StyleUpdater;
 
 public class DataSet extends Observable implements ElementSink {
 
@@ -22,6 +23,7 @@ public class DataSet extends Observable implements ElementSink {
 	int eIndex;
 
 	XYZUpdater xyzUpdater;
+	StyleUpdater styleUpdater;
 
 	final float[] area;
 
@@ -35,11 +37,13 @@ public class DataSet extends Observable implements ElementSink {
 		eIndex = 0;
 
 		xyzUpdater = new XYZUpdater(this);
+		styleUpdater = new StyleUpdater(this);
 
 		area = new float[] { -1, -1, 1, 1 };
 
 		source.addElementSink(this);
 		source.addAttributeSink(xyzUpdater);
+		source.addAttributeSink(styleUpdater);
 	}
 
 	public AttributeSink getXYZUpdater() {

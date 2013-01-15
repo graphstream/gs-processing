@@ -11,22 +11,23 @@ public class NodeData extends ElementData {
 	
 	public Shape shape;
 	
-	public int fillRGB;
-	public float fillA;
+	public int fillARGB;
 	
 	public float width;
 	public float height;
 	
 	String label;
 	
+	public double uiColor;
+	
 	public NodeData(String nodeId) {
 		super(nodeId);
 		
-		fillA = 40;
-		fillRGB = 0xFF111111;
-		width = 10;
-		height = 10;
+		fillARGB = 0x40111111;
+		width = 20;
+		height = 20;
 		shape = Shape.CIRCLE;
+		uiColor = 0;
 	}
 	
 	@Override
