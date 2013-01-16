@@ -45,13 +45,14 @@ public class NodeStyle extends ElementStyle {
 	}
 
 	public static int getDynamicColor(double uiColor, int[] fillARGBs) {
-		int idx1 = (int) (uiColor * fillARGBs.length);
+		uiColor = Math.min(1, Math.max(0, uiColor));
+		int idx1 = (int) (uiColor * (fillARGBs.length - 1));
 		int idx2 = idx1 + 1;
 
 		if (idx1 == idx2 || idx2 == fillARGBs.length)
 			return fillARGBs[idx1];
 
-		double s = 1.0 / fillARGBs.length;
+		double s = 1.0 / (fillARGBs.length - 1);
 		double d = (uiColor - idx1 * s) / s;
 
 		int a1 = (fillARGBs[idx1] & 0xFF000000) >> 24;

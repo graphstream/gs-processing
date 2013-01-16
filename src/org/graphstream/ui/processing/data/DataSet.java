@@ -7,7 +7,10 @@ import java.util.Observable;
 import org.graphstream.stream.AttributeSink;
 import org.graphstream.stream.ElementSink;
 import org.graphstream.stream.Source;
+import org.graphstream.ui.processing.XYConverter;
 import org.graphstream.ui.processing.style.StyleUpdater;
+
+import processing.core.PGraphics;
 
 public class DataSet extends Observable implements ElementSink {
 
@@ -121,6 +124,14 @@ public class DataSet extends Observable implements ElementSink {
 	public void dataUpdated(ElementData data) {
 		setChanged();
 		notifyObservers(data);
+	}
+	
+	public void draw(PGraphics g, XYConverter camera) {
+		for (int i = 0; i < getEdgeDataCount(); i++)
+			edges[i].draw(g, camera);
+
+		for (int i = 0; i < getNodeDataCount(); i++)
+			nodes[i].draw(g, camera);
 	}
 
 	@Override

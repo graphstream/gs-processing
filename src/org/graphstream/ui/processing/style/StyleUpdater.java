@@ -19,7 +19,7 @@ import org.graphstream.ui.processing.data.NodeData.Shape;
 public class StyleUpdater implements AttributeSink, Observer {
 
 	public static enum UIAction {
-		HIDE, STYLE, STYLESHEET, COLOR, SIZE, CLASS, UNKNOWN, NONE
+		HIDE, STYLE, STYLESHEET, COLOR, SIZE, CLASS, POINTS, POINTS_TYPE, LABEL, UNKNOWN, NONE
 	}
 
 	DataSet set;
@@ -119,7 +119,9 @@ public class StyleUpdater implements AttributeSink, Observer {
 	}
 
 	protected NodeStyle copy(Rule rule, NodeStyle style) {
-		disableParent(rule);
+		style.fillMode = rule.style.getFillMode();
+
+		Object p = disableParent(rule);
 
 		if (rule.style.getFillColorCount() > 0) {
 			style.fillARGBs = new int[rule.style.getFillColorCount()];
@@ -158,17 +160,34 @@ public class StyleUpdater implements AttributeSink, Observer {
 			style.shouldShape = true;
 		}
 
+		restoreParent(rule, p);
+
 		return style;
 	}
 
-	private void disableParent(Rule rule) {
+	private Object disableParent(Rule rule) {
 		try {
+			Object r;
 			Field f = Style.class.getDeclaredField("parent");
 			f.setAccessible(true);
+			r = f.get(rule.style);
 			f.set(rule.style, null);
+			return r;
 		} catch (Exception e) {
 			System.err.printf("some privileges are missing. ");
 			System.err.printf("style may not look as it was expected.\n");
+		}
+
+		return null;
+	}
+
+	private void restoreParent(Rule rule, Object p) {
+		try {
+			Field f = Style.class.getDeclaredField("parent");
+			f.setAccessible(true);
+			f.set(rule.style, p);
+		} catch (Exception e) {
+			// quiet
 		}
 	}
 
@@ -221,13 +240,20 @@ public class StyleUpdater implements AttributeSink, Observer {
 				data.hide();
 				break;
 			case COLOR:
+				check(newValue, Number.class);
 				data.uiColor = ((Number) newValue).doubleValue();
+				elementStyling(data);
+				break;
+			case LABEL:
+				check(newValue, String.class);
+				data.label = (String) newValue;
 				break;
 			case SIZE:
 				break;
 			case STYLE:
 				break;
 			case CLASS:
+				check(newValue, String.class);
 				data.uiClass = (String) newValue;
 				elementStyling(data);
 				break;
@@ -251,6 +277,7 @@ public class StyleUpdater implements AttributeSink, Observer {
 			case CLASS:
 				data.uiClass = null;
 				elementStyling(data);
+				break;
 			default:
 				break;
 			}
@@ -274,8 +301,24 @@ public class StyleUpdater implements AttributeSink, Observer {
 				data.show();
 				break;
 			case CLASS:
+				check(newValue, String.class);
 				data.uiClass = (String) newValue;
 				elementStyling(data);
+				break;
+			case COLOR:
+				check(newValue, Number.class);
+				data.uiColor = ((Number) newValue).doubleValue();
+				elementStyling(data);
+				break;
+			case LABEL:
+				check(newValue, String.class);
+				data.label = (String) newValue;
+				break;
+			case POINTS:
+				// TODO
+				break;
+			case POINTS_TYPE:
+				// TODO
 				break;
 			default:
 				break;
@@ -304,11 +347,19 @@ public class StyleUpdater implements AttributeSink, Observer {
 		}
 	}
 
+	protected void check(Object value, Class<?> expectedType) {
+		
+	}
+	
 	protected UIAction attribute2uiaction(String attribute) {
 		if (attribute.charAt(0) == 'u' && attribute.charAt(1) == 'i'
 				&& attribute.charAt(2) == '.') {
+
+			attribute = attribute.substring(3).toUpperCase();
+			attribute = attribute.replace('.', '_');
+
 			try {
-				return UIAction.valueOf(attribute.substring(3).toUpperCase());
+				return UIAction.valueOf(attribute);
 			} catch (IllegalArgumentException e) {
 				return UIAction.UNKNOWN;
 			}

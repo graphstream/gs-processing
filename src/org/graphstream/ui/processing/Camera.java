@@ -2,7 +2,7 @@ package org.graphstream.ui.processing;
 
 import org.graphstream.ui.processing.data.DataSet;
 
-public class Camera {
+public class Camera implements XYConverter {
 
 	DataSet data;
 	ProcessingEngine processing;
